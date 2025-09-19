@@ -43,10 +43,22 @@ The overall workflow for the medical QA system can be summarized as:
 - Questions and answers fit within 1024 tokens.
 - Evaluation uses standard **language-modeling loss** (per-token cross-entropy) as a proxy for answer quality.
 - Hardware: single **NVIDIA 4070 SUPER (~12 GB)** GPU; training feasible with QLoRA + LoRA.
-## Results (observed)
-- Final training loss: 
-- Final eval loss: 
-- Perplexity:
+## Results
+
+### Training & Validation
+- Best validation (@ step 400): loss 1.0165, perplexity 2.7636
+- Final training (@ step 400): loss 0.8495
+- Generalization gap (val loss – train loss) @ 400: 0.1670 (up from 0.1182 @ 100)
+These numbers show stable learning with limited overfitting.
+
+### Evaluation (100-sample subset)
+- **ROUGE-1:** 0.3678  
+- **ROUGE-2:** 0.1755  
+- **ROUGE-L:** 0.2597  
+- **BLEU:** 0.0724
+For a sample size of 100 the ROUGE-1/L capture key terms, ROUGE-2 and BLEU are low due to phrasing variance. Loss/perplexity trends confirm learning.
+### Takeaway
+Model shows steady progress; further gains need longer training, better decoding, or semantic metrics
 
 ## Strengths
 - Efficient adaptation to medical domain without full fine-tuning.
@@ -54,7 +66,7 @@ The overall workflow for the medical QA system can be summarized as:
 - Checkpointing at intervals with `load_best_model_at_end=True` preserves the best eval loss reduces overfitting risk.
 
 ## Limitations
-- LM loss is not equal to the factual correctness; medical QA needs grounded evaluation.
+- LM loss is not equal to the factual correctness, a medical QA needs grounded evaluation.
 - No retrieval grounding → risk of hallucinations on rare/edge cases.
   
 ## Potential Improvements
@@ -64,14 +76,13 @@ The overall workflow for the medical QA system can be summarized as:
 4. **RAG hybridization**: ground answers with citations from vetted medical sources.
 5. **LoRA search**: tune r/alpha (e.g., r∈{8,16,32}) and target modules for best quality/speed.
 6. **Safety layers**: classifier or rule-based filters to prevent unsafe advice.
-7. **Metrics**: add domain-specific scoring and error taxonomy for qualitative analysis.
-8. **Mixed dataset**: include general instruction data (10–20%) to reduce overfitting.
+7. **Metrics**: add domain-specific scoring for full dataset
 
 ## Future Work: Retrieval-Augmented Generation (RAG)  
 While the current system relies purely on fine-tuning, incorporating **RAG** would enhance factual correctness by grounding responses in verified medical sources. A retrieval layer could fetch relevant passages from trusted datasets or medical knowledge bases, which the model would then use as context during generation. This approach would reduce hallucinations and improve reliability for edge-case queries.  
 
-## Repro Notes
-- Transformers version parsed in notebook; use `eval_strategy="steps"` on **≥4.46**.
+## Reproduction Notes
+- Transformers version, use `eval_strategy="steps"` on **≥4.46**.
 - Ensure `self.model.config.use_cache=False` to avoid DynamicCache errors during training.
 - For 1024 tokens on a 4070 SUPER, effective batch **16–32** is usually sufficient; your run used a larger value by design for stability.
 
