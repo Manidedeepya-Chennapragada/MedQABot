@@ -1,7 +1,8 @@
 # Medical QA — LoRA Fine-Tuning (QLoRA)
 ## Overview
 This project fine-tunes **microsoft/Phi-3-mini-4k-instruct** using **LoRA (PEFT)** with **4-bit QLoRA** on a medical Q&A dataset. The goal is to apply a small, instruction-tuned base model to domain-specific QA while remaining trainable on a consumer GPU.
-##Approach
+
+## Approach
 - **Parameter-Efficient**: LoRA updates a small set of low-rank adapters (r=16, α=32, dropout=0.1) while freezing most base weights.
 - **Memory Efficient**: 4-bit quantization (NF4) with compute dtype float16 enables single-GPU training.
 - **Stable Training**: Gradient checkpointing and `use_cache=False` minimize activation memory and avoid DynamicCache issues in training.
