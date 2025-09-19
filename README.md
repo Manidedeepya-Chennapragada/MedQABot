@@ -34,6 +34,10 @@ This project fine-tunes **microsoft/Phi-3-mini-4k-instruct** using **LoRA (PEFT)
 - Optimizers: paged_adamw_8bit; Scheduler: cosine; Warmup: 100 steps.
 (Chosen for stability under deadline; see “Trade-offs” below.)
 - Other: gradient_checkpointing=True, remove_unused_columns=False, eval_strategy="steps", save_strategy="steps"
+## System Architecture (Pipeline Flow)
+The overall workflow for the medical QA system can be summarized as:  
+**Raw Dataset → Preprocessing (cleaning, deduplication, splitting) → Tokenization → Fine-tuning (LoRA + QLoRA on Phi-3 Mini) → Evaluation (loss, perplexity, qualitative checks) → Inference (user query → model answer).**  
+
 ## Assumptions
 - The medical Q&A dataset contains authoritative answers (no PHI).
 - Questions and answers fit within 1024 tokens.
@@ -52,6 +56,7 @@ This project fine-tunes **microsoft/Phi-3-mini-4k-instruct** using **LoRA (PEFT)
 ## Limitations
 - LM loss is not equal to the factual correctness; medical QA needs grounded evaluation.
 - No retrieval grounding → risk of hallucinations on rare/edge cases.
+- 
 ## Potential Improvements
 1. **bf16 compute** (if stable): set `bnb_4bit_compute_dtype=torch.bfloat16`, `bf16=True, fp16=False`.
 2. **Sequence packing**: Improve throughput by packing multiple short samples.
@@ -62,10 +67,14 @@ This project fine-tunes **microsoft/Phi-3-mini-4k-instruct** using **LoRA (PEFT)
 7. **Metrics**: add domain-specific scoring and error taxonomy for qualitative analysis.
 8. **Mixed dataset**: include general instruction data (10–20%) to reduce overfitting.
 
+## Future Work: Retrieval-Augmented Generation (RAG)  
+While the current system relies purely on fine-tuning, incorporating **RAG** would enhance factual correctness by grounding responses in verified medical sources. A retrieval layer could fetch relevant passages from trusted datasets or medical knowledge bases, which the model would then use as context during generation. This approach would reduce hallucinations and improve reliability for edge-case queries.  
+
 ## Repro Notes
 - Transformers version parsed in notebook; use `eval_strategy="steps"` on **≥4.46**.
 - Ensure `self.model.config.use_cache=False` to avoid DynamicCache errors during training.
 - For 1024 tokens on a 4070 SUPER, effective batch **16–32** is usually sufficient; your run used a larger value by design for stability.
+
 -----
 ## How to Run (sketch)
 1. **Install dependencies**  
