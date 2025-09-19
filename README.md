@@ -1,6 +1,6 @@
 # Medical QA — LoRA Fine-Tuning (QLoRA)
 ## Overview
-This project fine-tunes **microsoft/Phi-3-mini-4k-instruct** using **LoRA (PEFT)** with **4-bit QLoRA** on a medical Q&A dataset. The goal is to apply a small, instruction-tuned base model to domain-specific QA while while remaining trainable on a consumer GPU.
+This project fine-tunes **microsoft/Phi-3-mini-4k-instruct** using **LoRA (PEFT)** with **4-bit QLoRA** on a medical Q&A dataset. The goal is to apply a small, instruction-tuned base model to domain-specific QA while remaining trainable on a consumer GPU.
 ##Approach
 - **Parameter-Efficient**: LoRA updates a small set of low-rank adapters (r=16, α=32, dropout=0.1) while freezing most base weights.
 - **Memory Efficient**: 4-bit quantization (NF4) with compute dtype float16 enables single-GPU training.
@@ -42,7 +42,7 @@ The overall workflow for the medical QA system can be summarized as:
 - The medical Q&A dataset contains authoritative answers (no PHI).
 - Questions and answers fit within 1024 tokens.
 - Evaluation uses standard **language-modeling loss** (per-token cross-entropy) as a proxy for answer quality.
-- Hardware: single **NVIDIA 4070 SUPER (~13 GB)** GPU; training feasible with QLoRA + LoRA.
+- Hardware: single **NVIDIA 4070 SUPER (~12 GB)** GPU; training feasible with QLoRA + LoRA.
 ## Results (observed)
 - Final training loss: 
 - Final eval loss: 
@@ -56,7 +56,7 @@ The overall workflow for the medical QA system can be summarized as:
 ## Limitations
 - LM loss is not equal to the factual correctness; medical QA needs grounded evaluation.
 - No retrieval grounding → risk of hallucinations on rare/edge cases.
-- 
+  
 ## Potential Improvements
 1. **bf16 compute** (if stable): set `bnb_4bit_compute_dtype=torch.bfloat16`, `bf16=True, fp16=False`.
 2. **Sequence packing**: Improve throughput by packing multiple short samples.
